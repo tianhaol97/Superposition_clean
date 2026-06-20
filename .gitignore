@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.ipynb_checkpoints/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# OS
+.DS_Store
+
+# Caches
+.pytest_cache/
+.mypy_cache/
+
+# Large run artifacts (figures are committed; raw checkpoints are not)
+checkpoints/
+*.pt
+*.ckpt
