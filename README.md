@@ -12,8 +12,8 @@ Everything here is built on **Elhage et al. (2022), *Toy Models of Superposition
 
 A compact, self-contained reproduction of the paper's *core* results plus an explicit statistical-physics analysis — deliberately narrow, not a full replication.
 
-- **Reproduced from scratch** — the ReLU output model; the emergence of superposition with sparsity ($n=5$, $m=2 \to$ pentagon); the feature-dimensionality metric and its quantized values; a sparsity-driven phase diagram.
-- **Added, extending the paper's own framing** — an explicit packing/frustration *energy* whose minimum the trained network attains exactly (a Thomson-problem reading of the geometry), and an order-parameter presentation of the transition with a derived scaling form (Section 5, Appendix).
+- **Reproduced from scratch** — the ReLU output model; the emergence of superposition with sparsity ($n=5$, $m=2 \to$ pentagon); the feature-dimensionality metric and its quantized values; the $n=2,m=1$ phase-change analysis; and the paper's reading of the geometry as a **generalized Thomson problem** (the paper makes this connection explicitly — see §3).
+- **Added** — an independent, tested reimplementation; a numerical check that the learned geometry attains the ideal packing energy exactly; and a features-per-dimension order parameter with an empirical $\log(1/\text{density})$ scaling fit (a quantitative form I did not find stated in the paper). These illustrate and extend the paper's framing; they do not originate it.
 - **Out of scope** — results that are in the paper but not attempted here: the linear-model contrast, computation-in-superposition, correlated/anti-correlated features, higher-dimensional polytopes, learning dynamics, and the connection to real trained networks.
 
 ---
@@ -50,7 +50,7 @@ And because we have a control knob (sparsity), we can ask the question at the he
 
 This is home territory for a statistical physicist — frustration, packing, and phase transitions are everyday tools there — and the rest of this repository applies them to superposition directly.
 
-The original paper already thinks this way — it has a section on *phase changes* and discusses the geometry as uniform polytopes / packing. What this repo adds is to make that framing fully explicit and quantitative: a single order parameter swept across a control parameter, and a direct measurement that the learned geometry minimizes a packing energy (Section 5).
+The original paper already does this — it has a section on *phase changes*, decomposes the model into competing "feature benefit" and "interference" forces, and states explicitly that the model "can be understood as solving a generalized version of the **Thomson problem**" (packing points on a sphere to minimize an interference energy). This repo doesn't originate that framing; it **reproduces it from scratch and verifies it quantitatively** — sweeping a single order parameter across a control parameter (Section 5) and confirming the learned geometry hits the ideal packing energy to numerical precision.
 
 ---
 
@@ -149,7 +149,7 @@ So the dimensionality does not drift smoothly — it **locks onto a discrete lad
 
 The flat plateaus separated by jumps are the signature of distinct **geometric phases** — like discrete energy levels in a physical system. (The $2/3$ line is drawn for reference; this particular model jumps past it.)
 
-**(B) A solved packing problem.** We define a **frustration energy** — the total squared overlap between *unit* feature directions, the network's analogue of electrostatic repulsion:
+**(B) A solved packing problem.** The paper identifies the model's *interference* term as a **generalized Thomson energy** — points packed on a sphere minimizing a repulsion. We make that concrete and measure it: the total squared overlap between *unit* feature directions,
 
 ```math
 E(W) = \sum_{i \lt j} \bigl(\hat{W}_i \cdot \hat{W}_j\bigr)^2. \quad (7)
@@ -216,7 +216,7 @@ For the pentagon $E_5 = \tfrac14 \cdot 5 \cdot 3 = 3.75$ (an antipodal pair, $k=
 
 ### B. The phase boundary (minimal model $n=2$, $m=1$)
 
-One feature can always be stored perfectly in a single dimension; the question is whether a *second* feature is worth adding. Write $W = (w_1, w_2)$ so $h = w_1 x_1 + w_2 x_2$, and compare two strategies.
+This reproduces the paper's own closed-form analysis of the $n=2,m=1$ case (their "toy model of the toy model"), which compares the configurations $[1,0]$, $[0,1]$, and the antipodal $[1,-1]$ and identifies a first-order phase change. One feature can always be stored perfectly in a single dimension; the question is whether a *second* feature is worth adding. Write $W = (w_1, w_2)$ so $h = w_1 x_1 + w_2 x_2$, and compare two strategies.
 
 **Dedicate** ($W = (1, 0)$, $b = 0$): then $\hat{x}_1 = \mathrm{ReLU}(x_1) = x_1$ and $\hat{x}_2 = 0$, so only feature 2's error survives:
 
@@ -255,4 +255,4 @@ So **features-per-dimension $k/m$ grows linearly in $\ln(1/\text{density})$**, w
 
 ---
 
-*Built as a research demonstration. The model, the dimensionality metric, the quantized geometry, and the phase-change idea are all from the original paper — this repo reproduces them from scratch. My additions are the explicit packing-energy (Thomson-style) measurement and the order-parameter presentation of the phase diagram, which sharpen the paper's own framing rather than replace it.*
+*Built as a research demonstration. The model, the dimensionality metric, the quantized geometry, the $n=2,m=1$ phase-change analysis, and the generalized-Thomson-problem reading of the geometry are all from the original paper — this repo reproduces them from scratch. What I add is an independent reimplementation, a numerical verification that the learned geometry attains the ideal packing energy exactly, and a features-per-dimension order parameter with an empirical $\log(1/\text{density})$ scaling fit. The physics framing is the paper's; my contribution is reproducing and quantitatively checking it, not originating it.*
