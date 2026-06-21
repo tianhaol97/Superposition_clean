@@ -159,7 +159,23 @@ For $k$ unit vectors equally spaced on the circle, this has the closed form $E_k
 
 > **learned energy = 3.750, ideal regular-pentagon energy = 3.750** — they match to numerical precision.
 
-The network, simply by minimizing reconstruction error, has independently found the minimum-energy packing — the same flavour of answer the Thomson problem gives for points repelling on a sphere. (This unweighted energy is the *uniform-importance* case; the general importance-weighted form $E_I$, and why it still matches here, are in Appendix D.)
+The network, simply by minimizing reconstruction error, has independently found the minimum-energy packing — the same flavour of answer the Thomson problem gives for points repelling on a sphere.
+
+**How feature importance enters.** That clean match is the *uniform-importance* case. In general the interference the loss penalises is importance-weighted: feature $i$'s reconstruction error carries weight $I_i$, so a collision with feature $j$ contributes $I_i(\hat{W}_i\cdot\hat{W}_j)^2$, and summed over each pair the energy is
+
+```math
+E_I(W) = \sum_{i \lt j} (I_i + I_j)\,(\hat{W}_i \cdot \hat{W}_j)^2 . \quad (8)
+```
+
+Setting all $I_i = 1$ recovers $E_I = 2E$ — exactly the regime in which the paper states the model solves a *generalized Thomson problem*. So importance does two things: it sets **which** features are stored (the benefit of storing feature $k$ is $\propto I_k$ — this is what drives the Experiment 2 count), and with non-uniform importance the minimum-energy polytopes **deform**:
+
+| sparsity | $r$ | features stored | $E$ | $E_I$ |
+|---|---|---|---|---|
+| 0.97 | 1.0 (uniform) | 5 — regular **pentagon** | 3.750 | 7.500 |
+| 0.97 | 0.9 | 5 — pentagon | 3.750 | 6.143 |
+| 0.97 | 0.5 | 4 — regular **square** | 2.000 | 1.875 |
+
+At $r=0.5$ the least-important feature ($I_5 \approx 0.06$) is dropped — pentagon → square. But at high sparsity the survivors stay near-regular (each $D_i$ within ${\sim}0.005$ of $2/k$), which is why the unweighted match above holds even though this run uses $r = 0.9$.
 
 ---
 
@@ -197,19 +213,19 @@ tests/         fast checks of the engine and metrics
 For $k$ unit vectors equally spaced on the circle, write $\hat{W}_a = (\cos\theta_a, \sin\theta_a)$ with $\theta_a = 2\pi a / k$, so that $\hat{W}_a \cdot \hat{W}_b = \cos\!\big(\tfrac{2\pi (a-b)}{k}\big)$. The one fact we need is that for $k \ge 3$ the cross term vanishes and
 
 ```math
-\sum_{d=0}^{k-1} \cos^2\!\Big(\tfrac{2\pi d}{k}\Big) = \frac{k}{2}. \quad (8)
+\sum_{d=0}^{k-1} \cos^2\!\Big(\tfrac{2\pi d}{k}\Big) = \frac{k}{2}. \quad (9)
 ```
 
 **Dimensionality** $D_i = 2/k$ (used in Section 5A). With unit vectors $\| W_i \| = 1$, the denominator of $D_i$ is exactly the sum above, so
 
 ```math
-\sum_{j} \bigl(\hat{W}_i \cdot W_j\bigr)^2 = \sum_{d=0}^{k-1} \cos^2\!\Big(\tfrac{2\pi d}{k}\Big) = \frac{k}{2} \quad\Longrightarrow\quad D_i = \frac{1}{k/2} = \frac{2}{k}. \quad (9)
+\sum_{j} \bigl(\hat{W}_i \cdot W_j\bigr)^2 = \sum_{d=0}^{k-1} \cos^2\!\Big(\tfrac{2\pi d}{k}\Big) = \frac{k}{2} \quad\Longrightarrow\quad D_i = \frac{1}{k/2} = \frac{2}{k}. \quad (10)
 ```
 
 **Frustration energy** $E_k = \tfrac14 k(k-2)$ (used in Section 5B). Summing over unordered pairs, with $k$ ordered pairs for each nonzero difference $d$,
 
 ```math
-E_k = \sum_{a \lt b} \cos^2\!\Big(\tfrac{2\pi (a-b)}{k}\Big) = \frac{k}{2}\sum_{d=1}^{k-1}\cos^2\!\Big(\tfrac{2\pi d}{k}\Big) = \frac{k}{2}\Big(\frac{k}{2} - 1\Big) = \frac{k(k-2)}{4}. \quad (10)
+E_k = \sum_{a \lt b} \cos^2\!\Big(\tfrac{2\pi (a-b)}{k}\Big) = \frac{k}{2}\sum_{d=1}^{k-1}\cos^2\!\Big(\tfrac{2\pi d}{k}\Big) = \frac{k}{2}\Big(\frac{k}{2} - 1\Big) = \frac{k(k-2)}{4}. \quad (11)
 ```
 
 For the pentagon $E_5 = \tfrac14 \cdot 5 \cdot 3 = 3.75$ (an antipodal pair, $k=2$, gives $E = 1$ separately).
@@ -221,19 +237,19 @@ This reproduces the paper's own closed-form analysis of the $n=2,m=1$ case (thei
 **Dedicate** ($W = (1, 0)$, $b = 0$): then $\hat{x}_1 = \mathrm{ReLU}(x_1) = x_1$ and $\hat{x}_2 = 0$, so only feature 2's error survives:
 
 ```math
-L_{\text{ded}} = I\,\mathbb{E}[x_2^2] = I\,p \int_0^1 u^2\,du = \frac{I p}{3}. \quad (11)
+L_{\text{ded}} = I\,\mathbb{E}[x_2^2] = I\,p \int_0^1 u^2\,du = \frac{I p}{3}. \quad (12)
 ```
 
 **Superpose antipodally** ($W = (1, -1)$, $b = 0$): then $h = x_1 - x_2$, giving $\hat{x}_1 = \mathrm{ReLU}(x_1 - x_2)$ and $\hat{x}_2 = \mathrm{ReLU}(x_2 - x_1)$. If only one feature is on, reconstruction is *exact* (the ReLU clips the rest); error appears **only when both fire** (probability $p^2$), and then each feature's error equals $\min(x_1, x_2)$. With $\mathbb{E}[\min(u,v)^2] = 2\int_0^1\!\int_0^v u^2\,du\,dv = \tfrac16$ over the unit square,
 
 ```math
-L_{\text{sup}} = I\,p^2 \cdot 2\,\mathbb{E}[\min(u,v)^2] = I\,p^2 \cdot 2 \cdot \tfrac16 = \frac{I p^2}{3}. \quad (12)
+L_{\text{sup}} = I\,p^2 \cdot 2\,\mathbb{E}[\min(u,v)^2] = I\,p^2 \cdot 2 \cdot \tfrac16 = \frac{I p^2}{3}. \quad (13)
 ```
 
 **Boundary.** Setting $L_{\text{sup}} = L_{\text{ded}}$ gives $\tfrac{I p^2}{3} = \tfrac{I p}{3}$, i.e. $p = 1$. For every $p  \lt  1$ (any sparsity at all) we have $L_{\text{sup}}  \lt  L_{\text{ded}}$: **superposition wins, and the no-superposition phase survives only at the dense point $p = 1$.** The mechanism is the competing scaling
 
 ```math
-\underbrace{\text{benefit} \;\propto\; p}_{\text{feature is on}} \qquad \text{vs.} \qquad \underbrace{\text{interference cost} \;\propto\; p^2}_{\text{two features collide}}, \quad (13)
+\underbrace{\text{benefit} \;\propto\; p}_{\text{feature is on}} \qquad \text{vs.} \qquad \underbrace{\text{interference cost} \;\propto\; p^2}_{\text{two features collide}}, \quad (14)
 ```
 
 so the cost-to-benefit ratio $\propto p \to 0$ as the world gets sparse.
@@ -243,35 +259,10 @@ so the cost-to-benefit ratio $\propto p \to 0$ as the world gets sparse.
 In the full model ($n  \gt  m$), adding feature $k$ in superposition inflicts interference on the already-stored, more important features. The marginal cost scales as $c\,p^2 \sum_{j \lt k} I_j$ against a marginal benefit $\tfrac{p}{3} I_k$, where $c = O(1)$ is an undetermined collision constant. Storing feature $k$ is worthwhile while $\tfrac{p}{3} I_k \gtrsim c\,p^2 \sum_{j \lt k} I_j$. With geometric importance $I_k = r^{\,k-1}$ and $\sum_{j \lt k} I_j \to \tfrac{1}{1-r}$,
 
 ```math
-r^{\,k-1} \;\gtrsim\; \frac{3 c\,p}{1-r} \quad\Longrightarrow\quad k \;\lesssim\; k_0 + \frac{\ln(1/p)}{\ln(1/r)}. \quad (14)
+r^{\,k-1} \;\gtrsim\; \frac{3 c\,p}{1-r} \quad\Longrightarrow\quad k \;\lesssim\; k_0 + \frac{\ln(1/p)}{\ln(1/r)}. \quad (15)
 ```
 
 So **features-per-dimension $k/m$ grows linearly in $\ln(1/\text{density})$**, with slope $\sim \tfrac{1}{m \ln(1/r)}$ up to the constant $c$. Exp 2 confirms this *form* ($R^2 = 0.98$, averaged over 10 seeds); the unknown $c$ is exactly why the measured slope ($0.82$ per e-fold) and this crude estimate ($1.95$) differ by an $O(1)$ factor.
-
-### D. Feature importance and the generalized (weighted) energy
-
-Importance $I_i$ enters in two places — but **not** in the *shape* of the energy at high sparsity:
-
-1. **The loss (Eq 3)** weights each feature's reconstruction error by $I_i$.
-2. **Which features are stored.** The benefit of representing feature $k$ is $\propto I_k$ (Appendix C), so importance sets the representation threshold and hence the count $\phi$ — it is what turns the decay $I_k = r^{\,k-1}$ into the $\log(1/\text{density})$ law.
-
-The unweighted energy $E$ (Eq 7) is the **uniform-importance** case. In general the interference the loss penalises is importance-weighted: feature $i$'s error carries weight $I_i$, and a collision with $j$ contributes $I_i(\hat{W}_i\cdot\hat{W}_j)^2$, so summed symmetrically over each pair,
-
-```math
-E_I(W) = \sum_{i \lt j} (I_i + I_j)\,(\hat{W}_i \cdot \hat{W}_j)^2 . \quad (15)
-```
-
-Setting all $I_i = 1$ gives $E_I = 2E$ — and this uniform case is exactly the regime in which the paper states the model solves a *generalized Thomson problem*. With non-uniform importance the minimum-energy polytopes **deform**.
-
-Measured at $n=5,m=2$ (best of several seeds), this is what importance does:
-
-| sparsity | $r$ | features stored | $E$ | $E_I$ |
-|---|---|---|---|---|
-| 0.97 | 1.0 (uniform) | 5 — regular **pentagon** | 3.750 | 7.500 |
-| 0.97 | 0.9 | 5 — pentagon | 3.750 | 6.143 |
-| 0.97 | 0.5 | 4 — regular **square** | 2.000 | 1.875 |
-
-Importance controls **which** features survive — at $r=0.5$ the least-important feature ($I_5 \approx 0.06$) is dropped, turning the pentagon into a square — while at high sparsity the survivors still sit in a near-regular polytope (every $D_i$ within ${\sim}0.005$ of $2/k$). That importance-independence of the *shape* at high sparsity is why the unweighted check in §5, Experiment 3B is valid even though it runs at $r = 0.9$.
 
 ## 9. References
 
