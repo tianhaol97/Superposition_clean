@@ -53,6 +53,22 @@ def test_regular_pentagon_dimensionality_is_two_fifths():
     assert torch.allclose(dims, torch.full((5,), 0.4), atol=1e-4)
 
 
+def test_pentagon_energy_matches_closed_form():
+    # regular k-gon energy E_k = k(k-2)/4; pentagon -> 15/4 = 3.75
+    angles = 2 * np.pi * np.arange(5) / 5
+    W = torch.tensor(np.stack([np.cos(angles), np.sin(angles)]), dtype=torch.float32)
+    assert abs(metrics.frustration_energy(W) - 3.75) < 1e-4
+
+
+def test_weighted_energy_reduces_to_2E_for_uniform_importance():
+    # E_I = sum (I_i+I_j)(.)^2; with all I_i=1 this is exactly 2 * E.
+    angles = 2 * np.pi * np.arange(5) / 5
+    W = torch.tensor(np.stack([np.cos(angles), np.sin(angles)]), dtype=torch.float32)
+    E = metrics.frustration_energy(W)
+    E_I = metrics.frustration_energy(W, importance=torch.ones(5))
+    assert abs(E_I - 2 * E) < 1e-4
+
+
 def test_total_dimensionality_never_exceeds_hidden():
     torch.manual_seed(0)
     W = torch.randn(3, 20)  # 20 features crammed into 3 dimensions

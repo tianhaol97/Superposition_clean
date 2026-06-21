@@ -159,7 +159,7 @@ For $k$ unit vectors equally spaced on the circle, this has the closed form $E_k
 
 > **learned energy = 3.750, ideal regular-pentagon energy = 3.750** — they match to numerical precision.
 
-The network, simply by minimizing reconstruction error, has independently found the minimum-energy packing — the same flavour of answer the Thomson problem gives for points repelling on a sphere.
+The network, simply by minimizing reconstruction error, has independently found the minimum-energy packing — the same flavour of answer the Thomson problem gives for points repelling on a sphere. (This unweighted energy is the *uniform-importance* case; the general importance-weighted form $E_I$, and why it still matches here, are in Appendix D.)
 
 ---
 
@@ -247,6 +247,31 @@ r^{\,k-1} \;\gtrsim\; \frac{3 c\,p}{1-r} \quad\Longrightarrow\quad k \;\lesssim\
 ```
 
 So **features-per-dimension $k/m$ grows linearly in $\ln(1/\text{density})$**, with slope $\sim \tfrac{1}{m \ln(1/r)}$ up to the constant $c$. Exp 2 confirms this *form* ($R^2 = 0.98$, averaged over 10 seeds); the unknown $c$ is exactly why the measured slope ($0.82$ per e-fold) and this crude estimate ($1.95$) differ by an $O(1)$ factor.
+
+### D. Feature importance and the generalized (weighted) energy
+
+Importance $I_i$ enters in two places — but **not** in the *shape* of the energy at high sparsity:
+
+1. **The loss (Eq 3)** weights each feature's reconstruction error by $I_i$.
+2. **Which features are stored.** The benefit of representing feature $k$ is $\propto I_k$ (Appendix C), so importance sets the representation threshold and hence the count $\phi$ — it is what turns the decay $I_k = r^{\,k-1}$ into the $\log(1/\text{density})$ law.
+
+The unweighted energy $E$ (Eq 7) is the **uniform-importance** case. In general the interference the loss penalises is importance-weighted: feature $i$'s error carries weight $I_i$, and a collision with $j$ contributes $I_i(\hat{W}_i\cdot\hat{W}_j)^2$, so summed symmetrically over each pair,
+
+```math
+E_I(W) = \sum_{i \lt j} (I_i + I_j)\,(\hat{W}_i \cdot \hat{W}_j)^2 . \quad (15)
+```
+
+Setting all $I_i = 1$ gives $E_I = 2E$ — and this uniform case is exactly the regime in which the paper states the model solves a *generalized Thomson problem*. With non-uniform importance the minimum-energy polytopes **deform**.
+
+Measured at $n=5,m=2$ (best of several seeds), this is what importance does:
+
+| sparsity | $r$ | features stored | $E$ | $E_I$ |
+|---|---|---|---|---|
+| 0.97 | 1.0 (uniform) | 5 — regular **pentagon** | 3.750 | 7.500 |
+| 0.97 | 0.9 | 5 — pentagon | 3.750 | 6.143 |
+| 0.97 | 0.5 | 4 — regular **square** | 2.000 | 1.875 |
+
+Importance controls **which** features survive — at $r=0.5$ the least-important feature ($I_5 \approx 0.06$) is dropped, turning the pentagon into a square — while at high sparsity the survivors still sit in a near-regular polytope (every $D_i$ within ${\sim}0.005$ of $2/k$). That importance-independence of the *shape* at high sparsity is why the unweighted check in §5, Experiment 3B is valid even though it runs at $r = 0.9$.
 
 ## 9. References
 

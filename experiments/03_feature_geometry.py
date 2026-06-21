@@ -28,12 +28,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from _common import figure_path, log, train_best_of
-from superposition import TrainConfig
+from superposition import TrainConfig, importance_weights
 from superposition.metrics import (
     feature_dimensionality,
     feature_norms,
     frustration_energy,
 )
+
+IMPORTANCE = 0.9
 from superposition.viz import plot_feature_vectors_2d
 
 SPARSITIES = np.round(np.linspace(0.0, 0.97, 12), 3)
@@ -56,7 +58,7 @@ def main() -> None:
     for sparsity in SPARSITIES:
         cfg = TrainConfig(
             n_features=5, n_hidden=2, sparsity=float(sparsity),
-            importance=0.9, steps=6000, lr=2e-3,
+            importance=IMPORTANCE, steps=6000, lr=2e-3,
         )
         model, loss = train_best_of(cfg, n_seeds=6)
         W = model.W.detach()
@@ -85,12 +87,20 @@ def main() -> None:
     k = int((feature_norms(pentagon_W) > 0.5).sum())
     E_learned = frustration_energy(pentagon_W)
     E_ideal = regular_polygon_energy(k)
+    # generalized (importance-weighted) energy: E_I = sum (I_i + I_j)(Ŵ_i·Ŵ_j)^2.
+    # The clean unweighted match below holds because at high sparsity the geometry
+    # is essentially importance-independent (the uniform-importance Thomson regime).
+    I_vec = importance_weights(5, IMPORTANCE, "cpu")
+    E_weighted = frustration_energy(pentagon_W, importance=I_vec)
     axB.set_title(
         f"(B) Optimal packing at high sparsity\n"
         f"{k} features form a regular {k}-gon\n"
         f"frustration energy: learned={E_learned:.3f}, ideal {k}-gon={E_ideal:.3f}"
     )
-    log(f"pentagon: k={k}  E_learned={E_learned:.4f}  E_ideal={E_ideal:.4f}")
+    log(
+        f"pentagon: k={k}  E_learned={E_learned:.4f}  E_ideal={E_ideal:.4f}  "
+        f"E_weighted(r={IMPORTANCE})={E_weighted:.4f}"
+    )
 
     fig.tight_layout()
     out = figure_path("03_feature_geometry.png")

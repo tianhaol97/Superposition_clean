@@ -78,18 +78,34 @@ def num_represented(W: torch.Tensor, threshold: float = 0.5) -> int:
     return int((feature_norms(W) > threshold).sum())
 
 
-def frustration_energy(W: torch.Tensor, threshold: float = 0.5) -> float:
-    """Total squared overlap between distinct *represented* feature directions.
+def frustration_energy(
+    W: torch.Tensor, threshold: float = 0.5, importance: torch.Tensor | None = None
+) -> float:
+    """(Importance-weighted) squared overlap between *represented* directions.
 
-        E = sum over i<j of (Ŵ_i · Ŵ_j)^2
+    Uniform energy (``importance=None``):
+
+        E   = sum over i<j of (Ŵ_i · Ŵ_j)^2
+
+    Importance-weighted ("generalized Thomson") energy, when ``importance`` is
+    the per-feature importance vector I (shape (n,)):
+
+        E_I = sum over i<j of (I_i + I_j) (Ŵ_i · Ŵ_j)^2
+
+    The weighting follows from the loss: the error in reconstructing feature i
+    is weighted by I_i, and when features i and j collide that error picks up a
+    term ∝ (Ŵ_i · Ŵ_j)^2, contributing I_i (Ŵ_i·Ŵ_j)^2; summing the symmetric
+    i- and j-contributions over each pair gives the (I_i + I_j) factor. Setting
+    all I_i = 1 recovers 2E — the uniform-importance case, which is exactly the
+    regime in which the model's interference term is a *generalized Thomson
+    problem* (Elhage et al.). With non-uniform importance the minimum-energy
+    polytopes deform.
 
     This is the network's analogue of a physical repulsion energy: features
-    "want" to be orthogonal (overlap 0), but there are more of them than there
-    are dimensions, so they cannot all be mutually orthogonal — the system is
-    *frustrated*. Minimising this energy over unit vectors is exactly the kind
-    of packing problem studied in physics (e.g. the Thomson problem of charges
-    repelling on a sphere). The network, by minimising reconstruction loss,
-    ends up solving a closely related packing problem.
+    "want" to be orthogonal (overlap 0), but there are more of them than
+    dimensions, so they cannot all be mutually orthogonal — the system is
+    *frustrated*. The network, by minimising reconstruction loss, ends up
+    solving a closely related packing problem.
     """
     norms = feature_norms(W)
     rep = norms > threshold
@@ -100,4 +116,8 @@ def frustration_energy(W: torch.Tensor, threshold: float = 0.5) -> float:
     overlaps = W_hat.T @ W_hat  # (k, k)
     k = overlaps.shape[0]
     iu, ju = torch.triu_indices(k, k, offset=1)
-    return float((overlaps[iu, ju] ** 2).sum())
+    pair = overlaps[iu, ju] ** 2
+    if importance is None:
+        return float(pair.sum())
+    I = torch.as_tensor(importance, dtype=W.dtype, device=W.device)[rep]
+    return float(((I[iu] + I[ju]) * pair).sum())
