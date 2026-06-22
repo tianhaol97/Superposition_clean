@@ -257,13 +257,20 @@ So superposition wins once the world is sparse enough. The model takes the minim
 \text{superpose} \iff p \;\lt\; p^\star, \qquad p^\star = \frac{4I}{2+5I}\ (I\le1), \quad \frac{4}{5+2I}\ (I\ge1). \quad (14)
 ```
 
-These three phases tile the $(I,p)$ plane and meet at $(I,p)=(1,\tfrac47)$: **not represented** when the extra feature is unimportant and dense ($I\lt1$, $p\gt p^\star$); **dedicated** when it is the *more* important one and dense ($I\gt1$, $p\gt p^\star$); **superposition** whenever sparse ($p\lt p^\star$). The transition is **first order** (the optimal configuration switches discontinuously). Training the actual $n=2,m=1$ model confirms this map; the boundary it traces is a little above the clean estimate (e.g. at $I=1$ it superposes up to $p\approx0.7$ vs the estimate $\tfrac47\approx0.57$) because the superposed solution shaves a bit more off the collision error with a small bias — the exact boundary is the paper's full optimisation. Note the symmetric case is *not* "superposition for all sparsity": even at $I=1$ there is a genuine dense phase with no superposition.
+These three phases tile the $(I,p)$ plane and meet at $(I,p)=(1,\tfrac47)$: **not represented** when the extra feature is unimportant and dense ($I\lt1$, $p\gt p^\star$); **dedicated** when it is the *more* important one and dense ($I\gt1$, $p\gt p^\star$); **superposition** whenever sparse ($p\lt p^\star$). The transition is **first order** (the optimal configuration switches discontinuously). The symmetric case is *not* "superposition for all sparsity": even at $I=1$ there is a genuine dense phase. Training the actual $n=2,m=1$ model confirms this three-phase map:
 
 `python experiments/04_phase_diagram_n2m1.py`
 
 ![n=2, m=1 phase diagram](figures/04_phase_diagram_n2m1.png)
 
-Coloured cells are the trained model's phase across the $(I, p)$ plane; the solid curve is the analytic boundary $p^\star(I)$ above, and the dashed line ($I=1$) separates the two dense phases. The agreement is the check that the closed-form analysis matches the model.
+Coloured cells are the trained model's phase across the $(I, p)$ plane; the solid curve is the analytic boundary $p^\star(I)$ and the dashed line ($I=1$) splits the two dense phases.
+
+**The gap near the peak.** The trained superposition region sits slightly *above* the curve, with the largest gap around $I\approx1$ (where $p^\star$ is highest). This is not a structural error — it comes from two **simplifications in the closed form**, both in the *superposition* cost $L_{\text{anti}}=(1+I)p^2/6$:
+
+- **zero output bias** — the trained model learns a *positive* bias that grows with density (we measured it climbing from $+0.07$ to $+0.31$ as $p:0.45\to0.68$), lifting the both-active reconstruction that the antipodal solution otherwise systematically under-shoots;
+- **unit, fixed weights** — the trained model *shrinks* $\| W_i \|$ as density rises (we measured $0.98\to0.77$), attenuating the interference term.
+
+Together these put the true superposition loss roughly $2.5\times$ below the $b=0$ estimate at the boundary. (The *drop* costs, by contrast, are exact — a dropped feature is optimally predicted by its mean.) Both tricks only pay off when collisions are frequent, i.e. at high density, so they buy almost nothing at the sparse wings — where the curve hugs the cells — and the most near $I=1$, where the boundary sits at the highest $p$. The clean $p^\star$ is therefore a **conservative lower bound** on the superposition region; recovering the exact boundary means optimising the bias and scale too, which is the paper's full computation.
 
 ### C. From the boundary to the log-linear count (Exp 2)
 
