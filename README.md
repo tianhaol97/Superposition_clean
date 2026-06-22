@@ -13,7 +13,7 @@ Everything here is built on **Elhage et al. (2022), *Toy Models of Superposition
 A compact, self-contained reproduction of the paper's *core* results plus an explicit statistical-physics analysis — deliberately narrow, not a full replication.
 
 - **Reproduced from scratch** — the ReLU output model; the emergence of superposition with sparsity ($n=5$, $m=2 \to$ pentagon); the feature-dimensionality metric and its quantized values; the $n=2,m=1$ phase-change analysis; and the paper's reading of the geometry as a **generalized Thomson problem** (the paper makes this connection explicitly — see §3).
-- **Added** — an independent, tested reimplementation; a numerical check that the learned geometry attains the ideal packing energy exactly; and a features-per-dimension order parameter with an empirical $\log(1/\text{density})$ scaling fit (a quantitative form I did not find stated in the paper). These illustrate and extend the paper's framing; they do not originate it.
+- **Added** — an independent, tested reimplementation; a numerical check that the learned geometry attains the ideal packing energy exactly; and a features-per-dimension order parameter that tracks the superposition phase transition. These illustrate and extend the paper's framing; they do not originate it.
 - **Out of scope** — results that are in the paper but not attempted here: the linear-model contrast, computation-in-superposition, correlated/anti-correlated features, higher-dimensional polytopes, learning dynamics, and the connection to real trained networks.
 
 ---
@@ -173,11 +173,11 @@ Because a single run gives only a coarse integer count, we **average $\phi$ over
 
 ![Phase diagram](figures/03_phase_diagram.png)
 
-The network sits in a **no-superposition phase** (features-per-dimension ≈ 1) in the dense world, then transitions into a **superposition phase** as the world gets sparse, packing several features into every dimension. This is structurally identical to a magnet ordering as temperature drops: an order parameter responding to a control parameter, with a recognisable transition region.
+The network sits in a **no-superposition phase** ($\phi \approx 1$) in the dense world, then crosses into a **superposition phase** as the world gets sparse, climbing toward the ceiling $n/m = 4$ where every dimension is shared among four features. This is structurally a magnet ordering as temperature drops: an order parameter responding to a control parameter.
 
-**Theory vs. measurement (right panel).** Plotted against $1/\text{density}$ on a log axis, $\phi$ falls on a straight line ($R^2 \approx 0.98$): **features-per-dimension grows linearly in $\log(1/\text{density})$**. The intuition: a feature earns a (superposed) slot once its importance clears a threshold, and that threshold shrinks as the world gets sparser, because interference is paid only on a collision (probability $\propto\text{density}^2$). With geometrically-decaying importance, the count above the threshold grows logarithmically. This is an *empirical* scaling law — the *form* is robust, but the slope is only an order-of-magnitude estimate (a naive additive-interference argument overshoots it by ${\sim}2.4\times$), so we report it as a fitted line, not a parameter-free prediction. The minimal version of this benefit-vs-interference competition, solved exactly, is **Experiment 4**.
+A telling detail: **bottleneck usage stays pinned at 1 throughout** while $\phi$ climbs. The $m$ dimensions are *always* fully used; sparsity changes only *how many features share them*. The climb is gradual — the rarer features are, the more get packed in — and the most superposition lives in the sparsest regime. (The minimal version of this benefit-vs-interference competition, solved exactly in closed form, is **Experiment 4**.)
 
-### Experiment 4 — the minimal model, solved exactly
+### Experiment 4 — the minimal model, with analytical results
 
 `python experiments/04_phase_diagram_n2m1.py`
 
@@ -277,4 +277,4 @@ For the pentagon $E_5 = \tfrac14 \cdot 5 \cdot 3 = 3.75$ (an antipodal pair, $k=
 
 ---
 
-*Built as a research demonstration. The model, the dimensionality metric, the quantized geometry, the $n=2,m=1$ phase-change analysis, and the generalized-Thomson-problem reading of the geometry are all from the original paper — this repo reproduces them from scratch. What I add is an independent reimplementation, a numerical verification that the learned geometry attains the ideal packing energy exactly, and a features-per-dimension order parameter with an empirical $\log(1/\text{density})$ scaling fit. The physics framing is the paper's; my contribution is reproducing and quantitatively checking it, not originating it.*
+*Built as a research demonstration. The model, the dimensionality metric, the quantized geometry, the $n=2,m=1$ phase-change analysis, and the generalized-Thomson-problem reading of the geometry are all from the original paper — this repo reproduces them from scratch. What I add is an independent reimplementation, a numerical verification that the learned geometry attains the ideal packing energy exactly, and a features-per-dimension order parameter for the phase transition. The physics framing is the paper's; my contribution is reproducing and quantitatively checking it, not originating it.*
