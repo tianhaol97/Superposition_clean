@@ -92,7 +92,7 @@ This is the canonical "Toy Models of Superposition" result, reproduced from scra
 
 `python experiments/02_feature_geometry.py`
 
-Staying with the $n = 5, m = 2$ model ($r = 0.9$), we sweep sparsity finely and look at the *geometry* of the stored features.
+Staying with the $n = 5, m = 2$ model, we sweep sparsity finely and look at the *geometry* of the stored features. The two panels deliberately use different importances: **panel A uses a geometric decay ($r = 0.9$)**, which ranks the features so the dense-to-pentagon progression reads cleanly, while **panel B uses uniform importance ($r = 1$)**, the regime in which the plotted energy is *exactly* the quantity the loss minimizes (explained there).
 
 ![Feature geometry and packing](figures/02_feature_geometry.png)
 
