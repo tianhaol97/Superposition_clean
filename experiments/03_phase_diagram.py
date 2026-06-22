@@ -105,7 +105,9 @@ def main() -> None:
     # Analytic prediction: a feature earns a (superposed) slot once its importance
     # clears a threshold that shrinks with density; with geometric importance decay
     # the stored-feature count grows LINEARLY IN log(1/density). We test that
-    # predicted *form*; its slope carries O(1) constants we do not fix.
+    # predicted *form*. The slope it predicts, 1/(m*ln(1/r)), is parameter-free
+    # but crude: the naive additive-interference model overshoots the measured
+    # slope (~2.4x). The robust prediction is the form, not the slope.
     x = np.log(inv_density)
     rising = (phi_mean > 1.05) & (phi_mean < ceiling - 0.05)   # superposition regime
 
@@ -123,7 +125,7 @@ def main() -> None:
         slope_theory = 1.0 / (N_HIDDEN * np.log(1.0 / IMPORTANCE))
         log(
             f"right-panel fit: slope={slope:.3f}/e-fold (R²={r2:.3f}); "
-            f"crude theory slope={slope_theory:.3f} — same order, O(1) constants unfixed"
+            f"crude theory slope={slope_theory:.3f} (additive model overshoots; form is the robust part)"
         )
     ax2.set_xscale("log")
     ax2.axhline(ceiling, ls=":", color="#c33", lw=1, label="ceiling n/m = 4")
@@ -132,12 +134,12 @@ def main() -> None:
     ax2.set_ylabel(r"features per dimension $\phi$")
     ax2.set_title(
         "Superposition grows as log(1/density)\n"
-        "predicted scaling form; prefactor carries O(1) constants"
+        "predicted form; slope only an order-of-magnitude estimate"
     )
     ax2.legend(fontsize=8, loc="upper left")
 
     fig.tight_layout()
-    out = figure_path("02_phase_diagram.png")
+    out = figure_path("03_phase_diagram.png")
     fig.savefig(out, dpi=150)
     log(f"saved {out}")
 

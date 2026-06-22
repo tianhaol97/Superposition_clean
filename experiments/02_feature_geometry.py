@@ -103,7 +103,7 @@ def main() -> None:
     )
 
     fig.tight_layout()
-    out = figure_path("03_feature_geometry.png")
+    out = figure_path("02_feature_geometry.png")
     fig.savefig(out, dpi=150)
     log(f"saved {out}")
 
