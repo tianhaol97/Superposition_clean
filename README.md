@@ -200,7 +200,25 @@ Together these put the true superposition loss roughly $2.5\times$ below the $b=
 
 ---
 
-## 6. Run it yourself
+## 6. Take-aways: what this implies for real language models
+
+A five-feature toy is not a language model — but it lives in the regime LLMs are believed to occupy, and that is what makes its lessons transfer.
+
+- **LLMs live in a sparse world.** A language model must represent far more features — concepts, entities, idioms, syntactic roles, facts — than it has neurons, yet on any single token only a tiny fraction are active. That is exactly the toy model's setting: many features ($n \gg m$), each rarely on.
+
+- **So superposition is the rule, and polysemantic neurons are efficient, not broken.** The toy model's central result is that when features are numerous and sparse, the *loss-minimizing* solution packs more features than dimensions into overlapping directions. A neuron that responds to many unrelated things is the expected, efficient outcome — not a confused model.
+
+- **This is why interpretability is hard, and what to do about it.** If features live in overlapping directions that outnumber the neurons, then the neurons are the wrong basis to read. Understanding the model means recovering the feature *directions*, not inspecting neurons one at a time — the conceptual basis for **dictionary learning / sparse autoencoders**. The toy model is the fully-solvable justification for that program.
+
+- **The capacity–sparsity trade-off scales.** Sparser features mean more packed per dimension, so an LLM's dense activations can be read as a *noisy simulation of a much larger, sparser network*: far more features than neurons, at the price of interference that sparsity keeps rare (a collision costs only when two features fire together, $\propto \text{density}^2$). Superposition buys capacity; the bill is interference, paid rarely.
+
+- **Training assembles this geometry on its own.** Experiment 2B shows the feature geometry is not designed — it *emerges* as training minimizes the loss, the energy of the learned features falling to its packing minimum. The same pressure operates continuously in a real model, and is part of the picture behind why representations can reorganize in sudden steps during training.
+
+*Caveat.* These are implications *by analogy*, not theorems about LLMs: real models have privileged bases, attention, depth, correlated and non-uniform features, and far richer dynamics than a one-layer autoencoder on synthetic data. The toy model's worth is that it makes the *mechanism* — sparsity buying superposition, and superposition forcing a feature basis distinct from the neuron basis — transparent in a setting we can solve exactly.
+
+---
+
+## 7. Run it yourself
 
 ```bash
 git clone <this-repo>
@@ -215,7 +233,7 @@ pytest                      # fast sanity tests
 
 Figures are written to [`figures/`](figures). Everything runs on CPU in a few minutes.
 
-## 7. Repository layout
+## 8. Repository layout
 
 ```
 src/superposition/
@@ -228,7 +246,7 @@ experiments/   four scripts, each producing one figure above
 tests/         fast checks of the engine and metrics
 ```
 
-## 8. Appendix — the regular-polygon identities
+## 9. Appendix — the regular-polygon identities
 
 The two closed forms used in Experiment 2. For $k$ unit vectors equally spaced on the circle, write $\hat{W}_a = (\cos\theta_a, \sin\theta_a)$ with $\theta_a = 2\pi a / k$, so that $\hat{W}_a \cdot \hat{W}_b = \cos\big(\tfrac{2\pi (a-b)}{k}\big)$. The one fact we need is that for $k \ge 3$ the cross term vanishes and
 
@@ -250,7 +268,7 @@ E_k = \sum_{a \lt b} \cos^2\!\Big(\tfrac{2\pi (a-b)}{k}\Big) = \frac{k}{2}\sum_{
 
 For the pentagon $E_5 = \tfrac14 \cdot 5 \cdot 3 = 3.75$ (an antipodal pair, $k=2$, gives $E = 1$ separately).
 
-## 9. References
+## 10. References
 
 - Elhage et al., **"Toy Models of Superposition"**, Anthropic / Transformer Circuits Thread, 2022. <https://transformer-circuits.pub/2022/toy_model/index.html>
 - J. J. Thomson (1904) and the long line of work on minimum-energy point configurations on the sphere (the Thomson / Tammes problems).
