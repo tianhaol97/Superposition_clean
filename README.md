@@ -239,16 +239,16 @@ This reproduces the paper's closed-form analysis of the $n=2,m=1$ case (their "t
 - **dedicated**, $W=(0,1)$ — give the dimension to the extra, drop feature 1: $\hat{x}_2=x_2$, $\hat{x}_1=0$;
 - **antipodal**, $W=(1,-1)$ — both in superposition: $\hat{x}_i=\mathrm{ReLU}(\pm h)$, exact *unless both fire*.
 
-**Costs.** A *dropped* feature is best reconstructed by a constant — the model sets the bias to the feature's mean $\mathbb{E}[x]=p/2$ — so its cost is its **variance** $\mathrm{Var}(x)=\tfrac{p}{3}-\tfrac{p^2}{4}$ (not the raw second moment $\mathbb{E}[x^2]=p/3$; getting this right is what makes the boundary come out correctly). The *antipodal* pair reconstructs each feature exactly unless **both** fire (probability $p^2$), where each errs by $\min(x_1,x_2)$ with $\mathbb{E}[\min(u,v)^2]=\tfrac16$. Hence
+**Costs.** A *dropped* feature is best reconstructed by a constant — the model sets the bias to the feature's mean $\mathbb{E}[x]=p/2$ — so its cost is its **variance** $\mathrm{Var}(x)=\tfrac{p}{3}-\tfrac{p^2}{4}$ (not the raw second moment $\mathbb{E}[x^2]=p/3$; getting this right is what makes the boundary come out correctly). The *antipodal* pair reconstructs each feature exactly unless **both** fire (probability $p^2$); when they do, each feature's error is $\min(x_1,x_2)$ — the smaller of the two active values, each an independent draw from $\mathcal{U}[0,1)$ — and $\mathbb{E}[\min(x_1,x_2)^2]=\tfrac16$. Hence
 
 ```math
 L_{\text{not}} = I\!\left(\tfrac{p}{3}-\tfrac{p^2}{4}\right), \qquad L_{\text{ded}} = \tfrac{p}{3}-\tfrac{p^2}{4}, \qquad L_{\text{anti}} = \frac{(1+I)\,p^2}{6}. \quad (12)
 ```
 
-**Mechanism.** A dropped feature costs $\propto p$ (its variance), while interference costs only $\propto p^2$ — it is paid only when two features collide:
+**Mechanism.** The interference cost is *exactly* quadratic in density (it is paid only on a collision, probability $p^2$), whereas the drop cost is the variance $\tfrac{p}{3}-\tfrac{p^2}{4}$, which is linear in $p$ **only at high sparsity**. So to leading order as $p\to0$:
 
 ```math
-\underbrace{\text{cost of dropping} \;\propto\; p}_{\text{a feature is on}} \quad\text{vs.}\quad \underbrace{\text{interference cost} \;\propto\; p^2}_{\text{two features collide}}. \quad (13)
+\underbrace{\text{drop cost} \;\sim\; p}_{\text{linear (small } p)} \quad\text{vs.}\quad \underbrace{\text{interference} \;=\; \tfrac{(1+I)\,p^2}{6}}_{\text{exactly quadratic}}. \quad (13)
 ```
 
 So superposition wins once the world is sparse enough. The model takes the minimum of the three; equating $L_{\text{anti}}$ with the cheaper drop gives the superposition boundary
@@ -274,7 +274,7 @@ Together these put the true superposition loss roughly $2.5\times$ below the $b=
 
 ### C. From the boundary to the log-linear count (Exp 2)
 
-In the full model ($n  \gt  m$), adding feature $k$ in superposition inflicts interference on the already-stored, more important features. The marginal cost scales as $c\,p^2 \sum_{j \lt k} I_j$ against a marginal benefit $\tfrac{p}{3} I_k$, where $c = O(1)$ is an undetermined collision constant. Storing feature $k$ is worthwhile while $\tfrac{p}{3} I_k \gtrsim c\,p^2 \sum_{j \lt k} I_j$. With geometric importance $I_k = r^{\,k-1}$ and $\sum_{j \lt k} I_j \to \tfrac{1}{1-r}$,
+In the full model ($n  \gt  m$), adding feature $k$ in superposition inflicts interference on the already-stored, more important features. The marginal cost scales as $c\,p^2 \sum_{j \lt k} I_j$ (interference, $c = O(1)$), against a marginal benefit equal to the variance feature $k$ would otherwise lose, $\bigl(\tfrac{p}{3}-\tfrac{p^2}{4}\bigr) I_k \approx \tfrac{p}{3} I_k$ at high sparsity (Eq 12). In that small-$p$ limit, storing feature $k$ is worthwhile while $\tfrac{p}{3} I_k \gtrsim c\,p^2 \sum_{j \lt k} I_j$; with geometric importance $I_k = r^{\,k-1}$ and $\sum_{j \lt k} I_j \to \tfrac{1}{1-r}$,
 
 ```math
 r^{\,k-1} \;\gtrsim\; \frac{3 c\,p}{1-r} \quad\Longrightarrow\quad k \;\lesssim\; k_0 + \frac{\ln(1/p)}{\ln(1/r)}. \quad (15)
